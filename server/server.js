@@ -1,7 +1,8 @@
-const app = require("./src/app");
+const app = require("./app");
+const env = require("./config/env");
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`GuestRequest server running on port ${PORT}`);
+app.listen(env.port, () => {
+  console.log(
+    `GuestRequest server running on http://localhost:${env.port}`
+  );
 });
