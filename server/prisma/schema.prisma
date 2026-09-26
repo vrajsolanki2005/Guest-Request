@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  
+}
+
+enum UserRole {
+  FRONT_DESK
+  STAFF
+  MANAGER
+}
+
+enum RequestStatus {
+  OPEN
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum RequestCategory {
+  HOUSEKEEPING
+  MAINTENANCE
+  ROOM_SERVICE
+  RECEPTION
+  OTHER
+}
+
+enum RequestEventType {
+  CREATED
+  ASSIGNED
+  ACKNOWLEDGED
+  STARTED
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+model Hotel {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+  rooms     Room[]
+  guests    Guest[]
+  requests  Request[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  hotelId   String
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel            Hotel          @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  assignedRequests Request[]      @relation("AssignedStaff")
+  requestEvents    RequestEvent[]
+
+  @@index([hotelId])
+  @@index([role])
+}
+
+model Room {
+  id         String   @id @default(cuid())
+  hotelId    String
+  roomNumber String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  hotel    Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  guests   Guest[]
+  requests Request[]
+
+  @@unique([hotelId, roomNumber])
+  @@index([hotelId])
+}
+
+model Guest {
+  id        String   @id @default(cuid())
+  hotelId   String
+  roomId    String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel    Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  room     Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  requests Request[]
+
+  @@index([hotelId])
+  @@index([roomId])
+}
+
+model Request {
+  id           String           @id @default(cuid())
+  hotelId      String
+  roomId       String
+  guestId      String
+  category     RequestCategory
+  priority     RequestPriority
+  description  String
+  status       RequestStatus    @default(OPEN)
+
+  assignedToId String?
+  slaDeadline  DateTime?
+  escalatedAt  DateTime?
+  resolvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel      Hotel          @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  room       Room           @relation(fields: [roomId], references: [id])
+  guest      Guest          @relation(fields: [guestId], references: [id])
+  assignedTo User?          @relation("AssignedStaff", fields: [assignedToId], references: [id])
+  events     RequestEvent[]
+
+  @@index([hotelId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([slaDeadline])
+}
+
+model RequestEvent {
+  id        String            @id @default(cuid())
+  requestId String
+  userId    String?
+  eventType RequestEventType
+  metadata  Json?
+  createdAt DateTime          @default(now())
+
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id])
+
+  @@index([requestId])
+  @@index([userId])
+  @@index([createdAt])
+}
