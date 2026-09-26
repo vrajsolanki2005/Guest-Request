@@ -1,4 +1,4 @@
-const prisma = require("../config/database");
+const prisma = require("../config/db");
 
 const escalateRequest = async (requestId) => {
   const request = await prisma.request.findUnique({
