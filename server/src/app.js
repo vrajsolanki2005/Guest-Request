@@ -14,9 +14,7 @@ app.use(
 );
 
 app.use(express.json());
-
 app.use("/api", routes);
-
 app.use((req, res) => {
   res.status(404).json({
     success: false,

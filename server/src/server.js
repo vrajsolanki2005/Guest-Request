@@ -1,6 +1,6 @@
 const app = require("./app");
 const env = require("./config/env");
-const prisma = require("./config/database");
+const prisma = require("./config/db");
 
 const startServer = async () => {
   try {
