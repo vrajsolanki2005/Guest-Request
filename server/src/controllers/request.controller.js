@@ -306,10 +306,63 @@ const updateRequestStatus = async (req, res, next) => {
     next(error);
   }
 };
+const getRequestById = async (req, res, next) => {
+  try {
+    const { requestId } = req.params;
+
+    const request = await prisma.request.findFirst({
+      where: {
+        id: requestId,
+        hotelId: req.user.hotelId,
+      },
+      include: {
+        room: true,
+        guest: true,
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        events: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                role: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Request not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: request,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   createRequest,
   getRequests,
   assignRequest,
   updateRequestStatus,
+  getRequestById,
 };

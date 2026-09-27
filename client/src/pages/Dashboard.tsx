@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import type { RequestItem, RequestStatus } from "../types/request";
-
+import SLACountdown from "../components/slaCountdown";
+import { Link } from "react-router-dom";
 const statusStyles: Record<RequestStatus, string> = {
   OPEN: "bg-blue-50 text-blue-700",
   ACKNOWLEDGED: "bg-yellow-50 text-yellow-700",
@@ -226,13 +227,16 @@ const RequestCard = ({
             )}
           </div>
 
-          <div>
+          <Link
+            to={`/requests/${request.id}`}
+            className="block hover:opacity-80"
+          >
             <h3 className="font-semibold">
               {request.category.replace("_", " ")}
             </h3>
 
             <p className="mt-1 text-slate-600">{request.description}</p>
-          </div>
+          </Link>
 
           <div className="flex flex-wrap gap-4 text-sm text-slate-500">
             <span>Guest: {request.guest.name}</span>
@@ -240,9 +244,11 @@ const RequestCard = ({
             <span>Staff: {request.assignedTo?.name || "Unassigned"}</span>
 
             {deadline && (
-              <span className={isBreached ? "font-medium text-red-600" : ""}>
-                SLA: {deadline.toLocaleTimeString()}
-              </span>
+              <SLACountdown
+                deadline={request.slaDeadline}
+                status={request.status}
+                escalatedAt={request.escalatedAt}
+              />
             )}
           </div>
         </div>

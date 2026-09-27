@@ -8,6 +8,7 @@ const {
   getRequests,
   assignRequest,
   updateRequestStatus,
+  getRequestById,
 } = require("../controllers/request.controller");
 
 const router = express.Router();
@@ -30,7 +31,11 @@ router.get(
   getRequests
 );
 
-
+router.get(
+  "/:requestId",
+  authorize("MANAGER", "FRONT_DESK", "STAFF"),
+  getRequestById
+); 
 // Assign request to staff
 router.patch(
   "/:requestId/assign",
