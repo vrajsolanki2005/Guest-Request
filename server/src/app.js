@@ -11,6 +11,7 @@ const roomRoutes = require("./routes/room.routes");
 const guestRoutes = require("./routes/guest.routes");
 const staffRoutes = require("./routes/staff.routes");
 const errorHandler = require("./middleware/error.middleware");
+const analyticsRoutes = require("./routes/analytics.routes");
 const env = require("./config/env");
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api/requests", requestRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/guests", guestRoutes);
 app.use("/api/staff", staffRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
