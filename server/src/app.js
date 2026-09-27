@@ -1,9 +1,17 @@
 const express = require("express");
 const cors = require("cors");
 
-const routes = require("./routes");
 const errorHandler = require("./middleware/error.middleware");
 const env = require("./config/env");
+
+const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+const roomRoutes = require("./routes/room.routes");
+const guestRoutes = require("./routes/guest.routes");
+const staffRoutes = require("./routes/staff.routes");
+const requestRoutes = require("./routes/request.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
+const healthRoutes = require("./routes/health.routes");
 
 const app = express();
 
@@ -33,7 +41,14 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api", routes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/rooms", roomRoutes);
+app.use("/api/guests", guestRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/requests", requestRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/health", healthRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
