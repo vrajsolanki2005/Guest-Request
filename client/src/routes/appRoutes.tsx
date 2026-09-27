@@ -25,12 +25,12 @@ const AppRoutes = () => (
       element={
         <ProtectedRoute>
           <AppLayout />
-          <Route path="/requests/:requestId" element={<RequestDetails />} />
         </ProtectedRoute>
       }
     >
       <Route index element={<Dashboard />} />
       <Route path="/requests/new" element={<ManageRequests />} />
+      <Route path="/requests/:requestId" element={<RequestDetails />} />
       <Route path="/rooms" element={<ManageRooms />} />
     </Route>
 

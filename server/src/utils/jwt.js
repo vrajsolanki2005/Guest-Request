@@ -10,9 +10,11 @@ const generateToken = (user) => {
     },
     env.jwtSecret,
     {
-      expiresIn: env.jwtExpiresIn,
+      expiresIn: String(env.jwtExpiresIn || "7d"),
     }
   );
 };
 
-module.exports = { generateToken };
+module.exports = {
+  generateToken,
+};

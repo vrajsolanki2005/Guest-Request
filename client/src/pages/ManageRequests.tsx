@@ -1,16 +1,25 @@
 import { useEffect, useState, type FormEvent } from "react";
 import api from "../api/axios";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
 
-type Room = {
-  id: string;
-  roomNumber: string;
-};
+type Room = { id: string; roomNumber: string };
+type Guest = { id: string; name: string; roomId: string };
 
-type Guest = {
-  id: string;
-  name: string;
-  roomId: string;
-};
+const CATEGORIES = [
+  { value: "HOUSEKEEPING", label: "Housekeeping" },
+  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "ROOM_SERVICE", label: "Room Service" },
+  { value: "RECEPTION", label: "Reception" },
+  { value: "OTHER", label: "Other" },
+];
+
+const PRIORITIES = [
+  { value: "LOW", label: "Low", sla: "60 min SLA" },
+  { value: "MEDIUM", label: "Medium", sla: "30 min SLA" },
+  { value: "HIGH", label: "High", sla: "15 min SLA" },
+  { value: "URGENT", label: "Urgent", sla: "5 min SLA" },
+];
 
 const ManageRequests = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -26,14 +35,14 @@ const ManageRequests = () => {
 
   useEffect(() => {
     Promise.all([api.get("/rooms"), api.get("/guests")])
-      .then(([roomResponse, guestResponse]) => {
-        setRooms(roomResponse.data.data);
-        setGuests(guestResponse.data.data);
+      .then(([r, g]) => {
+        setRooms(r.data.data);
+        setGuests(g.data.data);
       })
       .catch(() => setError("Failed to load rooms and guests"));
   }, []);
 
-  const filteredGuests = guests.filter((guest) => guest.roomId === roomId);
+  const filteredGuests = guests.filter((g) => g.roomId === roomId);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -42,14 +51,7 @@ const ManageRequests = () => {
     setSubmitting(true);
 
     try {
-      await api.post("/requests", {
-        roomId,
-        guestId,
-        category,
-        priority,
-        description,
-      });
-
+      await api.post("/requests", { roomId, guestId, category, priority, description });
       setMessage("Request created successfully.");
       setRoomId("");
       setGuestId("");
@@ -64,121 +66,125 @@ const ManageRequests = () => {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Create Guest Request</h2>
+        <h1 className="text-2xl font-bold text-slate-900">New Request</h1>
         <p className="mt-1 text-sm text-slate-500">
           Record a new guest issue or service request.
         </p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 rounded-xl border bg-white p-6"
-      >
+      <Card className="p-6">
         {message && (
-          <div className="rounded-lg bg-green-50 p-3 text-green-700">
+          <div className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700 ring-1 ring-green-200">
             {message}
           </div>
         )}
-
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-red-700">{error}</div>
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 ring-1 ring-red-200">
+            {error}
+          </div>
         )}
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Room</label>
-          <select
-            value={roomId}
-            onChange={(e) => {
-              setRoomId(e.target.value);
-              setGuestId("");
-            }}
-            className="w-full rounded-lg border p-3"
-            required
-          >
-            <option value="">Select room</option>
-            {rooms.map((room) => (
-              <option key={room.id} value={room.id}>
-                Room {room.roomNumber}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Guest</label>
-          <select
-            value={guestId}
-            onChange={(e) => setGuestId(e.target.value)}
-            className="w-full rounded-lg border p-3"
-            disabled={!roomId}
-            required
-          >
-            <option value="">Select guest</option>
-            {filteredGuests.map((guest) => (
-              <option key={guest.id} value={guest.id}>
-                {guest.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Category</label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Field label="Room">
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-lg border p-3"
+              value={roomId}
+              onChange={(e) => { setRoomId(e.target.value); setGuestId(""); }}
+              className="input"
+              required
             >
-              <option value="HOUSEKEEPING">Housekeeping</option>
-              <option value="MAINTENANCE">Maintenance</option>
-              <option value="ROOM_SERVICE">Room Service</option>
-              <option value="RECEPTION">Reception</option>
-              <option value="OTHER">Other</option>
+              <option value="">Select a room</option>
+              {rooms.map((r) => (
+                <option key={r.id} value={r.id}>Room {r.roomNumber}</option>
+              ))}
             </select>
+          </Field>
+
+          <Field label="Guest">
+            <select
+              value={guestId}
+              onChange={(e) => setGuestId(e.target.value)}
+              className="input"
+              disabled={!roomId}
+              required
+            >
+              <option value="">
+                {roomId ? "Select a guest" : "Select a room first"}
+              </option>
+              {filteredGuests.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
+          </Field>
+
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Category">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="input"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Priority">
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                className="input"
+              >
+                {PRIORITIES.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label} — {p.sla}
+                  </option>
+                ))}
+              </select>
+            </Field>
           </div>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Priority</label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className="w-full rounded-lg border p-3"
-            >
-              <option value="LOW">Low — 60 min SLA</option>
-              <option value="MEDIUM">Medium — 30 min SLA</option>
-              <option value="HIGH">High — 15 min SLA</option>
-              <option value="URGENT">Urgent — 5 min SLA</option>
-            </select>
-          </div>
-        </div>
+          <Field label="Description">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe the guest's request…"
+              rows={4}
+              className="input resize-none"
+              required
+              minLength={3}
+              maxLength={1000}
+            />
+          </Field>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the guest's request..."
-            rows={4}
-            className="w-full rounded-lg border p-3"
-            required
-            minLength={3}
-            maxLength={1000}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={submitting || !rooms.length}
-          className="w-full rounded-lg bg-slate-900 px-4 py-3 font-medium text-white disabled:opacity-50"
-        >
-          {submitting ? "Creating..." : "Create Request"}
-        </button>
-      </form>
+          <Button
+            type="submit"
+            disabled={submitting || !rooms.length}
+            className="w-full py-3"
+          >
+            {submitting ? "Creating…" : "Create Request"}
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 };
+
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div>
+    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+      {label}
+    </label>
+    {children}
+  </div>
+);
 
 export default ManageRequests;

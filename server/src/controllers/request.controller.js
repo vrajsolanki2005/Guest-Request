@@ -1,11 +1,6 @@
 const prisma = require("../config/db");
 const { scheduleSlaCheck } = require("../jobs/sla.job");
-const SLA_MINUTES = {
-  LOW: 60,
-  MEDIUM: 30,
-  HIGH: 15,
-  URGENT: 5,
-};
+const { SLA_MINUTES } = require("../constants");
 
 const createRequest = async (req, res, next) => {
   try {

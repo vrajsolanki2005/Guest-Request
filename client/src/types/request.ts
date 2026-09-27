@@ -5,11 +5,7 @@ export type RequestStatus =
   | "RESOLVED"
   | "CLOSED";
 
-export type RequestPriority =
-  | "LOW"
-  | "MEDIUM"
-  | "HIGH"
-  | "URGENT";
+export type RequestPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 export type RequestCategory =
   | "HOUSEKEEPING"
@@ -27,20 +23,24 @@ export type RequestItem = {
   slaDeadline: string | null;
   escalatedAt: string | null;
   resolvedAt: string | null;
+  createdAt: string;
 
-  room: {
-    id: string;
-    roomNumber: string;
-  };
+  room: { id: string; roomNumber: string };
+  guest: { id: string; name: string };
+  assignedTo: { id: string; name: string; role: string } | null;
+};
 
-  guest: {
-    id: string;
-    name: string;
-  };
+export type RequestEventItem = {
+  id: string;
+  eventType: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  user: { name: string; role: string } | null;
+};
 
-  assignedTo: {
-    id: string;
-    name: string;
-    role: string;
-  } | null;
+export type StaffMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: "MANAGER" | "FRONT_DESK" | "STAFF";
 };
