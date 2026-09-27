@@ -218,7 +218,6 @@ function RoomModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const toast = useToast();
   const [roomNumber, setRoomNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -286,7 +285,6 @@ function GuestModal({
   rooms: Room[];
   onCreated: () => void;
 }) {
-  const toast = useToast();
   const [name, setName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [submitting, setSubmitting] = useState(false);
