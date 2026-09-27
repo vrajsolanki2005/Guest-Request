@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import AppLayout from "../layouts/appLayout";
 import Login from "../pages/Login";
@@ -7,11 +8,18 @@ import Dashboard from "../pages/Dashboard";
 import ManageRequests from "../pages/ManageRequests";
 import ManageRooms from "../pages/ManageRooms";
 import RequestDetails from "../pages/RequestDetails";
+import Staff from "../pages/Staff";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
@@ -32,6 +40,7 @@ const AppRoutes = () => (
       <Route path="/requests/new" element={<ManageRequests />} />
       <Route path="/requests/:requestId" element={<RequestDetails />} />
       <Route path="/rooms" element={<ManageRooms />} />
+      <Route path="/staff" element={<Staff />} />
     </Route>
 
     <Route path="*" element={<Navigate to="/" replace />} />

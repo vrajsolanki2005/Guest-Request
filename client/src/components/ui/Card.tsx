@@ -5,10 +5,12 @@ type Props = {
   className?: string;
 };
 
-const Card = ({ children, className = "" }: Props) => (
-  <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
-    {children}
-  </div>
-);
-
-export default Card;
+export default function Card({ children, className = "" }: Props) {
+  return (
+    <div
+      className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
+    >
+      {children}
+    </div>
+  );
+}

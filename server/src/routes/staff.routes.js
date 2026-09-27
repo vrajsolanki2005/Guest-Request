@@ -14,7 +14,7 @@ router.use(authenticate);
 
 router.get(
   "/",
-  authorize("MANAGER", "FRONT_DESK"),
+  authorize("MANAGER", "FRONT_DESK", "STAFF"),
   getStaff
 );
 

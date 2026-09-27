@@ -6,7 +6,7 @@ const getStaff = async (req, res, next) => {
     const staff = await prisma.user.findMany({
       where: {
         hotelId: req.user.hotelId,
-        role: "STAFF",
+        role: { in: ["STAFF", "FRONT_DESK"] },
       },
       select: {
         id: true,
@@ -53,13 +53,16 @@ const createStaff = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const allowedRoles = ["STAFF", "FRONT_DESK"];
+    const assignedRole = allowedRoles.includes(req.body.role) ? req.body.role : "STAFF";
+
     const staff = await prisma.user.create({
       data: {
         hotelId: req.user.hotelId,
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password: hashedPassword,
-        role: "STAFF",
+        role: assignedRole,
       },
       select: {
         id: true,

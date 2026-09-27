@@ -1,117 +1,79 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../api/axios";
-import { useAuth } from "../context/AuthContext";
-import type { RequestItem, RequestStatus } from "../types/request";
-import SLACountdown from "./slaCountdown";
-import Badge from "./ui/Badge";
+import { ChevronRight, User } from "lucide-react";
+import type { RequestItem } from "../types/request";
+import { CATEGORY_LABELS, timeAgo } from "../utils/format";
+import PriorityBadge from "./PriorityBadge";
+import StatusBadge from "./StatusBadge";
+import SLACountdown from "./SLACountdown";
 import Button from "./ui/Button";
 import Card from "./ui/Card";
+import { useAdvanceStatus } from "./RequestTable";
 
-const statusVariant: Record<RequestStatus, "blue" | "yellow" | "purple" | "green" | "slate"> = {
-  OPEN: "blue",
-  ACKNOWLEDGED: "yellow",
-  IN_PROGRESS: "purple",
-  RESOLVED: "green",
-  CLOSED: "slate",
-};
-
-const priorityVariant: Record<string, "slate" | "blue" | "orange" | "red"> = {
-  LOW: "slate",
-  MEDIUM: "blue",
-  HIGH: "orange",
-  URGENT: "red",
-};
-
-const nextStatus: Partial<Record<RequestStatus, RequestStatus>> = {
-  OPEN: "ACKNOWLEDGED",
-  ACKNOWLEDGED: "IN_PROGRESS",
-  IN_PROGRESS: "RESOLVED",
-  RESOLVED: "CLOSED",
-};
-
-type Props = {
+export default function RequestCard({
+  request,
+  onUpdated,
+}: {
   request: RequestItem;
   onUpdated: () => void;
-};
-
-const RequestCard = ({ request, onUpdated }: Props) => {
-  const { user } = useAuth();
-  const [updating, setUpdating] = useState(false);
-
-  const next = nextStatus[request.status];
-
-  const updateStatus = async () => {
-    if (!next) return;
-    try {
-      setUpdating(true);
-      await api.patch(`/requests/${request.id}/status`, { status: next });
-      onUpdated();
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to update request");
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const canUpdate =
-    next && (user?.role !== "STAFF" || request.assignedTo?.id === user.id);
+}) {
+  const { next, canUpdate, advance, updating } = useAdvanceStatus(request, onUpdated);
 
   return (
-    <Card className="p-5 transition-shadow hover:shadow-md">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="slate">Room {request.room.roomNumber}</Badge>
-            <Badge variant={priorityVariant[request.priority]}>
-              {request.priority}
-            </Badge>
-            <Badge variant={statusVariant[request.status]}>
-              {request.status.replace("_", " ")}
-            </Badge>
-            {request.escalatedAt && (
-              <Badge variant="red">⚠ SLA BREACHED</Badge>
-            )}
-          </div>
-
-          <Link to={`/requests/${request.id}`} className="block group">
-            <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-              {request.category.replace(/_/g, " ")}
-            </p>
-            <p className="mt-0.5 text-sm text-slate-500 line-clamp-2">
-              {request.description}
-            </p>
-          </Link>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-            <span>
-              <span className="font-medium text-slate-700">Guest:</span>{" "}
-              {request.guest.name}
-            </span>
-            <span>
-              <span className="font-medium text-slate-700">Staff:</span>{" "}
-              {request.assignedTo?.name ?? "Unassigned"}
-            </span>
-            {request.slaDeadline && (
-              <SLACountdown
-                deadline={request.slaDeadline}
-                status={request.status}
-                escalatedAt={request.escalatedAt}
-              />
-            )}
-          </div>
+    <Card className="p-4 lg:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <PriorityBadge priority={request.priority} />
+          <StatusBadge status={request.status} />
         </div>
-
-        {canUpdate && (
-          <div className="shrink-0">
-            <Button onClick={updateStatus} disabled={updating}>
-              {updating ? "Updating…" : `Mark ${next.replace("_", " ")}`}
-            </Button>
-          </div>
+        {request.slaDeadline && (
+          <SLACountdown
+            deadline={request.slaDeadline}
+            status={request.status}
+            escalatedAt={request.escalatedAt}
+          />
         )}
       </div>
+
+      <Link to={`/requests/${request.id}`} className="group mt-3 block">
+        <p className="font-semibold text-slate-900 group-hover:text-indigo-600">
+          {CATEGORY_LABELS[request.category]}
+        </p>
+        <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">
+          {request.description}
+        </p>
+      </Link>
+
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="shrink-0 font-medium text-slate-700">
+            Room {request.room.roomNumber}
+          </span>
+          <span className="flex min-w-0 items-center gap-1">
+            <User className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">
+              {request.assignedTo?.name ?? "Unassigned"}
+            </span>
+          </span>
+        </div>
+        <span className="shrink-0">{timeAgo(request.createdAt)}</span>
+      </div>
+
+      {(canUpdate || next) && (
+        <div className="mt-3 flex items-center gap-2">
+          {canUpdate && next && (
+            <Button size="sm" onClick={advance} loading={updating} className="flex-1">
+              {next.replace("_", " ")}
+            </Button>
+          )}
+          <Link to={`/requests/${request.id}`} className="flex-1">
+            <Button size="sm" variant="secondary" className="w-full">
+              <span className="inline-flex items-center gap-1">
+                View <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            </Button>
+          </Link>
+        </div>
+      )}
     </Card>
   );
-};
-
-export default RequestCard;
+}
