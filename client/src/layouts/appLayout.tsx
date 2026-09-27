@@ -4,6 +4,7 @@ import {
   BedDouble,
   BellRing,
   FilePlus2,
+  ChartNoAxesCombined,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -40,6 +41,9 @@ export default function AppLayout() {
           { to: "/requests/new", label: "New Request", icon: FilePlus2 },
           { to: "/rooms", label: "Rooms & Guests", icon: BedDouble },
         ]
+      : []),
+    ...(user?.role === "MANAGER"
+      ? [{ to: "/analytics", label: "Analytics", icon: ChartNoAxesCombined }]
       : []),
     { to: "/staff", label: "Staff", icon: Users },
   ];
