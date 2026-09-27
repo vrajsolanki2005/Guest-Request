@@ -17,18 +17,35 @@ const app = express();
 
 const allowedOrigins = (env.clientUrl || "")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+
+console.log("Allowed CORS origins:", allowedOrigins);
 
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+    origin: (origin, callback) => {
+      console.log("Incoming request origin:", origin);
+
+      if (!origin) {
         return callback(null, true);
       }
 
-      return callback(new Error("Origin not allowed by CORS"));
+      const normalizedOrigin = origin
+        .trim()
+        .replace(/\/$/, "");
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        return callback(null, true);
+      }
+
+      console.error(
+        `CORS blocked origin: ${normalizedOrigin}`
+      );
+
+      return callback(null, false);
     },
+    credentials: true,
   }),
 );
 
