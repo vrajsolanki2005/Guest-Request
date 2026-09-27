@@ -6,6 +6,7 @@ const userRoutes = require("./user.routes");
 const requestRoutes = require("./request.routes");
 const roomRoutes = require("./room.routes");
 const guestRoutes = require("./guest.routes");
+const staffRoutes = require("./staff.routes");
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use("/users", userRoutes);
 router.use("/requests", requestRoutes);
 router.use("/rooms", roomRoutes);
 router.use("/guests", guestRoutes);
+router.use("/staff", staffRoutes);
 
 module.exports = router;
